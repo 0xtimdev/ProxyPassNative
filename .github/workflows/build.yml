@@ -1,4 +1,4 @@
-name: Build Native from JAR
+name: Build Native Image for Android (ARM64)
 
 on:
   push:
@@ -13,17 +13,26 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Set up GraalVM
+    - name: Set up GraalVM with Native Image
       uses: graalvm/setup-graalvm@v1
       with:
         java-version: '17'
         distribution: 'graalvm'
         components: 'native-image'
+        set-java-home: true
 
-    - name: Build native image
+    - name: Install prerequisites
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential clang zlib1g-dev libstdc++-12-dev
+
+    - name: Build native image for ARM64
       run: |
         native-image \
           --no-fallback \
+          --static \
+          --target-arch=arm64 \
+          --libc=musl \
           -H:Name=proxy \
           -H:Class=com.nukkitx.proxypass.ProxyPass \
           -H:+ReportExceptionStackTraces \
@@ -32,5 +41,5 @@ jobs:
     - name: Upload binary
       uses: actions/upload-artifact@v4
       with:
-        name: proxy-native
+        name: proxy-native-android
         path: proxy
