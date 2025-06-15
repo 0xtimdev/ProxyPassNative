@@ -1,11 +1,12 @@
-name: Build Native for ARM64
+name: Build Native for ARM64 (Termux)
 
 on:
   workflow_dispatch:
 
 jobs:
-  build-arm64:
+  build-arm:
     runs-on: ubuntu-latest
+    name: ARM64 Build via Docker
 
     steps:
       - name: Checkout repository
@@ -14,14 +15,22 @@ jobs:
       - name: Set up QEMU for ARM64
         uses: docker/setup-qemu-action@v3
 
-      - name: Build native image
+      - name: Build native image in ARM64 container
         run: |
           docker run --rm --platform linux/arm64 \
             -v ${{ github.workspace }}:/work \
             ghcr.io/graalvm/native-image-community:latest \
-            bash -c "cd /work && native-image --no-fallback --static -H:Name=proxy -H:Class=com.nukkitx.proxypass.ProxyPass -H:+ReportExceptionStackTraces -cp jar/proxypass-1.0.0-SNAPSHOT.jar"
+            sh -c "
+              cd /work && \
+              native-image \
+                --no-fallback \
+                -H:Name=proxy \
+                -H:Class=com.nukkitx.proxypass.ProxyPass \
+                -H:+ReportExceptionStackTraces \
+                -cp jar/proxypass-1.0.0-SNAPSHOT.jar
+            "
 
-      - name: Upload binary
+      - name: Upload ARM64 binary
         uses: actions/upload-artifact@v4
         with:
           name: proxy-native-arm64
