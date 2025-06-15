@@ -8,6 +8,7 @@ on:
 jobs:
   build-arm64:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -26,6 +27,7 @@ jobs:
           ghcr.io/graalvm/native-image-community:latest \
           native-image \
             --no-fallback \
+            --libc=musl \
             --static \
             -H:Name=proxy \
             -H:Class=com.nukkitx.proxypass.ProxyPass \
