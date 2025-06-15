@@ -19,26 +19,28 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build Docker Image with musl support
+    - name: Build Docker Image
       run: |
         docker buildx build --platform linux/arm64 \
           -f Dockerfile.arm64 \
-          -t graalvm-arm64-musl \
+          -t graalvm-arm64 \
           --load .
 
-    - name: Build native image
+    - name: Build native image with musl
       run: |
         docker run --rm --platform linux/arm64 \
           -v "$PWD":/work \
           -w /work \
-          graalvm-arm64-musl \
+          graalvm-arm64 \
           native-image \
-            --libc=musl \
-            --static \
-            --no-fallback \
             -H:Name=proxy \
             -H:Class=com.nukkitx.proxypass.ProxyPass \
             -H:+ReportExceptionStackTraces \
+            -H:+UnlockExperimentalVMOptions \
+            -H:-CheckToolchain \
+            --no-fallback \
+            --libc=musl \
+            --static \
             -cp jar/proxypass-1.0.0-SNAPSHOT.jar
 
     - name: Upload binary
