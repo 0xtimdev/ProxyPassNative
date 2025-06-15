@@ -1,12 +1,10 @@
-name: Native Image Build for Android (ARM64 via QEMU)
+name: Native Image ARM64 with musl
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
 
 jobs:
-  build-arm64:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,19 +14,24 @@ jobs:
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v3
 
-    - name: Set up Docker Buildx
+    - name: Set up Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Run GraalVM Native Image inside ARM64 Docker
+    - name: Build Native Image inside ARM64 container with musl
       run: |
+        docker buildx build --platform linux/arm64 \
+          -f .github/Dockerfile.arm64 \
+          -t graalvm-arm64-musl \
+          .
+
         docker run --rm --platform linux/arm64 \
           -v "$PWD":/work \
           -w /work \
-          ghcr.io/graalvm/native-image-community:latest \
+          graalvm-arm64-musl \
           native-image \
-            --no-fallback \
             --libc=musl \
             --static \
+            --no-fallback \
             -H:Name=proxy \
             -H:Class=com.nukkitx.proxypass.ProxyPass \
             -H:+ReportExceptionStackTraces \
