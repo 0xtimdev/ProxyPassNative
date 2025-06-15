@@ -1,0 +1,36 @@
+name: Build Native from JAR
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Set up GraalVM
+      uses: graalvm/setup-graalvm@v1
+      with:
+        java-version: '17'
+        distribution: 'graalvm'
+        components: 'native-image'
+
+    - name: Build native image
+      run: |
+        native-image \
+          --no-fallback \
+          -H:Name=proxy \
+          -H:Class=com.nukkitx.proxypass.ProxyPass \
+          -H:+ReportExceptionStackTraces \
+          -cp jar/proxypass-1.0.0-SNAPSHOT.jar
+
+    - name: Upload binary
+      uses: actions/upload-artifact@v4
+      with:
+        name: proxy-native
+        path: proxy
